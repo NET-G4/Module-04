@@ -10,7 +10,7 @@ namespace Lesson01
         static void Main(string[] args)
         {
             ShowMenu();
-            Main(args);    
+            Main(args);     
         }
         static void ShowMenu()
         {
