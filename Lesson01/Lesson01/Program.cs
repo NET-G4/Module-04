@@ -1,13 +1,14 @@
 ﻿using Lesson01.Models.CoinDesk;
 using Newtonsoft.Json;
 using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography;
 using System.Text;
-
-
 namespace Lesson01
 {
     internal class Program
     {
+        static object locker = new object();
+
         static void Main(string[] args)
         {
 
@@ -22,9 +23,11 @@ namespace Lesson01
         }
         static void DownloadBitcoinData()
         {
-            var coinDesk = HttpRequest<CoinDesk>("https://api.coindesk.com/v1/bpi/currentprice.json");
+            Monitor.Enter(locker);
+                var coinDesk = HttpRequest<CoinDesk>("https://api.coindesk.com/v1/bpi/currentprice.json");
 
-            FileManager<CoinDesk>.Save(coinDesk);
+                FileManager<CoinDesk>.Save(coinDesk);
+            Monitor.Exit(locker);
         }
         #endregion
         #region University
@@ -40,12 +43,13 @@ namespace Lesson01
         }
         static void DownloadUniversitiesData(object country)
         {
-            country = (string)country;   
-            List<University> universities = HttpRequest<List<University>>($"http://universities.hipolabs.com/search?country={country}");
+            lock (locker)
+            {
+                country = (string)country;
+                List<University> universities = HttpRequest<List<University>>($"http://universities.hipolabs.com/search?country={country}");
 
-            FileManager<List<University>>.Save(universities);
-
-            Console.ReadKey();
+                FileManager<List<University>>.Save(universities);
+            }
         }
         #endregion
         #region Joke
@@ -58,7 +62,9 @@ namespace Lesson01
         {
             Joke joke = HttpRequest<Joke>("https://official-joke-api.appspot.com/random_joke");
 
+            Monitor.Enter(locker);
             FileManager<Joke>.Save(joke);
+            Monitor.Exit(locker);
         }
         #endregion 
       
