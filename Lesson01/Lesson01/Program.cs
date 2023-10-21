@@ -3,12 +3,14 @@ using Newtonsoft.Json;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
+
 namespace Lesson01
 {
     internal class Program
     {
         static void Main(string[] args)
         {
+
             ShowMenu();
             Main(args);      
         }
@@ -27,15 +29,23 @@ namespace Lesson01
         #endregion
         #region University
         static void ThreadMakerUniversities()
-        {
+        { 
+
+            Console.WriteLine("enter country : ");
+            string country = Console.ReadLine();
+
             Thread thread2 = new Thread(DownloadUniversitiesData);
-            thread2.Start();
+            thread2.Start(country);
+
         }
-        static void DownloadUniversitiesData()
+        static void DownloadUniversitiesData(object country)
         {
-            List<University> universities = HttpRequest<List<University>>("http://universities.hipolabs.com/search?country=United+States");
+            country = (string)country;   
+            List<University> universities = HttpRequest<List<University>>($"http://universities.hipolabs.com/search?country={country}");
 
             FileManager<List<University>>.Save(universities);
+
+            Console.ReadKey();
         }
         #endregion
         #region Joke
@@ -56,7 +66,7 @@ namespace Lesson01
         {
             Console.Clear();
             Console.WriteLine("1.Get old informations BitCoin");
-            Console.WriteLine("2.Get old information Universities in USA");
+            Console.WriteLine("2.Get old information Universities");
             Console.WriteLine("3.Get old any jokes");
             Console.WriteLine("4.Update informations Bitcoin");
             Console.WriteLine("5.Update information Universities in USA");
@@ -103,10 +113,9 @@ namespace Lesson01
         {
             try
             {
-
                 var universities = FileManager<List<University>>.Load();
 
-                Console.WriteLine("Universities in USA : ");
+                Console.WriteLine("Universities : ");
 
                 for (int i = 0; i<universities.Count; i++)
                 {
