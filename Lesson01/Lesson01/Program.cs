@@ -10,15 +10,58 @@ namespace Lesson01
         static void Main(string[] args)
         {
             ShowMenu();
-            Main(args);     
+            Main(args);      
         }
+        #region BitCoin
+        static void ThreadMakerBitcoin()
+        {
+            Thread thread1 = new Thread(DownloadBitcoinData);
+            thread1.Start();
+        }
+        static void DownloadBitcoinData()
+        {
+            var coinDesk = HttpRequest<CoinDesk>("https://api.coindesk.com/v1/bpi/currentprice.json");
+
+            FileManager<CoinDesk>.Save(coinDesk);
+        }
+        #endregion
+        #region University
+        static void ThreadMakerUniversities()
+        {
+            Thread thread2 = new Thread(DownloadUniversitiesData);
+            thread2.Start();
+        }
+        static void DownloadUniversitiesData()
+        {
+            List<University> universities = HttpRequest<List<University>>("http://universities.hipolabs.com/search?country=United+States");
+
+            FileManager<List<University>>.Save(universities);
+        }
+        #endregion
+        #region Joke
+        static void ThreadMakerJoke()
+        {
+            Thread thread3 = new Thread(DownloadJokeData);
+            thread3.Start();
+        }
+        static void DownloadJokeData()
+        {
+            Joke joke = HttpRequest<Joke>("https://official-joke-api.appspot.com/random_joke");
+
+            FileManager<Joke>.Save(joke);
+        }
+        #endregion 
+      
         static void ShowMenu()
         {
             Console.Clear();
-            Console.WriteLine("1.Get informations BitCoin");
-            Console.WriteLine("2.Get information Universities in USA");
-            Console.WriteLine("3.Get any jokes");
-            Console.WriteLine("4.Show zippotaman");
+            Console.WriteLine("1.Get old informations BitCoin");
+            Console.WriteLine("2.Get old information Universities in USA");
+            Console.WriteLine("3.Get old any jokes");
+            Console.WriteLine("4.Update informations Bitcoin");
+            Console.WriteLine("5.Update information Universities in USA");
+            Console.WriteLine("6.Update any jokes");
+
             Menu();
         }
         static int ChooseMenu()
@@ -33,54 +76,52 @@ namespace Lesson01
         {
             switch (ChooseMenu())
             {
+                case 4: ThreadMakerBitcoin();break;
+                case 5: ThreadMakerUniversities();break;;
+                case 6: ThreadMakerJoke();break;
                 case 1: Bitcoin();break;
                 case 2: Universities();break;
                 case 3: Jokes();break;
-                case 4: ZippotamanShow();break;
                 default: break;
             }
-        }
-        static void ZippotamanShow()
-        {
-            Zippotaman zippotaman = HttpRequest<Zippotaman>("https://api.zippopotam.us/us/33162");
-
-            Console.WriteLine("Places : ");
-            foreach (var i in zippotaman.places)
-            {
-                Console.WriteLine($"{i.latitude}");
-                Console.WriteLine($"{i.longitude}");
-                Console.WriteLine($"{i.placename}");
-                Console.WriteLine($"{i.state}");
-                Console.WriteLine($"{i.stateabbreviation}");
-            }
-            Console.ReadKey();
         }
         static void Jokes()
         {
             Console.Clear();
-
-            Joke joke = HttpRequest<Joke>("https://official-joke-api.appspot.com/random_joke");
-
-            Console.WriteLine($" {joke.punchline}");
-
+            try
+            {
+                var joke = FileManager<Joke>.Load();
+                Console.WriteLine($" {joke.punchline}");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Fayl bo'sh {ex.Message}");
+            }
             Console.ReadKey();
         }
         static void Universities()
         {
-            Console.WriteLine("Universities in USA : ");
-
-            List<University> universities = HttpRequest<List<University>>("http://universities.hipolabs.com/search?country=United+States");
-            
-
-            for(int i = 0; i<universities.Count; i++)
+            try
             {
-                Console.WriteLine((i+1) + universities[i].name);
+
+                var universities = FileManager<List<University>>.Load();
+
+                Console.WriteLine("Universities in USA : ");
+
+                for (int i = 0; i<universities.Count; i++)
+                {
+                    Console.WriteLine((i+1) + universities[i].name);
+                }
+                Console.WriteLine("Choose the University ID number");
+
+                int.TryParse(Console.ReadLine(), out int choose);
+
+                GetInformationUniverity(universities[--choose]);
             }
-            Console.WriteLine("Choose the University ID number");
-
-            int.TryParse(Console.ReadLine(), out int choose);
-
-            GetInformationUniverity(universities[--choose]);
+            catch(Exception ex)
+            {
+                Console.WriteLine("Nimadir xato" + ex.Message);
+            }
 
         }
         static void GetInformationUniverity(University university)
@@ -105,7 +146,7 @@ namespace Lesson01
         }
         static void Bitcoin()
         {
-            var coinDesk = HttpRequest<CoinDesk>("https://api.coindesk.com/v1/bpi/currentprice.json");
+            var coinDesk = FileManager<CoinDesk>.Load();
 
             Console.WriteLine("1.Bitcoin in USD");
             Console.WriteLine("2.Bitcoin in EUR");
