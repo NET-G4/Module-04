@@ -1,4 +1,4 @@
-﻿using Lesson06.Models;
+﻿using Lesson08.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Lesson06
+namespace Lesson05
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -47,15 +47,33 @@ namespace Lesson06
             {
                 BeforeLoadingStockData();
 
-                var country = CountryNameInput.Text;
+                string[] countries = CountryNameInput.Text.Split(' ');
 
-                var source = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-                var result = await GetData(country, source);
+                var source = new CancellationTokenSource(TimeSpan.FromSeconds(50));
+                List<University> loadedUniversities = new();
+                List<Task<List<University>>> tasks = new List<Task<List<University>>>();
+
+                foreach(var country in countries)
+                {
+                    var task = GetData(country, source);
+                    tasks.Add(task);
+
+                    //var res = await GetData(country, source);
+                    //loadedUniversities.AddRange(res);
+
+                    //UniversitiesDataGrid.ItemsSource = null;
+                    //UniversitiesDataGrid.ItemsSource = loadedUniversities;
+                }
+
+                // Thread.Sleep(2000);
+
+                var result = await Task.WhenAny(tasks);
+                var r = result.Result;
+
+                loadedUniversities.AddRange(r);
 
                 UniversitiesDataGrid.ItemsSource = null;
-                UniversitiesDataGrid.ItemsSource = result;
-
-                await WriteData(result);
+                UniversitiesDataGrid.ItemsSource = loadedUniversities;
             }
             catch (Exception ex)
             {
@@ -83,12 +101,13 @@ namespace Lesson06
                 }
             }
 
-            Dispatcher.Invoke(() 
+            Dispatcher.Invoke(()
                 => Notes.Text = $"Fetched data saved to file {System.IO.Path.GetFileName(fullPath)}");
         }
 
         private async Task<List<University>> GetData(string country, CancellationTokenSource token)
         {
+            Thread.Sleep(3000);
             var result = await LoadUniversities(country, token);
             return result;
         }
@@ -306,4 +325,5 @@ namespace Lesson06
             Dispatcher.Invoke(() => Notes.Text = data);
         }
     }
+
 }
