@@ -1,11 +1,13 @@
-﻿using Lesson08.Models;
+﻿using Lesson09.Models;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +21,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Lesson05
+namespace Lesson09
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -46,34 +48,32 @@ namespace Lesson05
             try
             {
                 BeforeLoadingStockData();
+                var source = new CancellationTokenSource(TimeSpan.FromSeconds(50));
+                ConcurrentBag<University> universitiesList = new ConcurrentBag<University>();
 
                 string[] countries = CountryNameInput.Text.Split(' ');
+                List<Task> tasks = new List<Task>();
 
-                var source = new CancellationTokenSource(TimeSpan.FromSeconds(50));
-                List<University> loadedUniversities = new();
-                List<Task<List<University>>> tasks = new List<Task<List<University>>>();
-
-                foreach(var country in countries)
+                foreach (var country in countries)
                 {
                     var task = GetData(country, source);
-                    tasks.Add(task);
+                    var r = task.ContinueWith(task =>
+                    {
+                        universitiesList.Add(task.Result[0]);
+                        universitiesList.Add(task.Result[1]);
 
-                    //var res = await GetData(country, source);
-                    //loadedUniversities.AddRange(res);
-
-                    //UniversitiesDataGrid.ItemsSource = null;
-                    //UniversitiesDataGrid.ItemsSource = loadedUniversities;
+                        Dispatcher.Invoke(() =>
+                        {
+                            UniversitiesDataGrid.ItemsSource = null;
+                            UniversitiesDataGrid.ItemsSource = universitiesList;
+                        });
+                    });
+                    tasks.Add(r);
                 }
 
-                // Thread.Sleep(2000);
-                Thread.Sleep(2000);
+                await Task.WhenAll(tasks);
 
-                var result = Task.WhenAll(tasks);
-
-                // loadedUniversities.AddRange(r);
-
-                UniversitiesDataGrid.ItemsSource = null;
-                UniversitiesDataGrid.ItemsSource = loadedUniversities;
+                int g = 0;
             }
             catch (Exception ex)
             {
@@ -87,10 +87,11 @@ namespace Lesson05
 
         private async Task WriteData(List<University> universities)
         {
+            throw new Exception();
             var path = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             var fullPath = path + $"\\files\\data-{DateTime.Now.Day}-{DateTime.Now.Month}.json";
 
-            Directory.CreateDirectory(path + "\\files");
+            Directory.CreateDirectory(path + "\\files2");
 
             using (FileStream fs = new FileStream(fullPath, FileMode.OpenOrCreate))
             {
@@ -107,7 +108,6 @@ namespace Lesson05
 
         private async Task<List<University>> GetData(string country, CancellationTokenSource token)
         {
-            MessageBox.Show("Execute");
             var result = await LoadUniversities(country, token);
             return result;
         }
@@ -140,6 +140,7 @@ namespace Lesson05
 
         private async Task<List<University>> LoadUniversities(string country, CancellationTokenSource token)
         {
+            await Task.Delay(1000);
             string url;
             if (string.IsNullOrEmpty(country))
             {
@@ -154,6 +155,7 @@ namespace Lesson05
             {
                 Content = new StringContent("", Encoding.UTF8, "application/json")
             };
+            // Execution context -> Remember the thread
 
             var response = await _client.SendAsync(request, token.Token);
             var streamReader = new StreamReader(response.Content.ReadAsStream());
@@ -325,5 +327,4 @@ namespace Lesson05
             Dispatcher.Invoke(() => Notes.Text = data);
         }
     }
-
 }
