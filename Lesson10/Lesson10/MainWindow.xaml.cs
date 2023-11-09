@@ -13,14 +13,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Lesson10
 {
@@ -35,6 +27,9 @@ namespace Lesson10
         private Stopwatch stopwatch = new Stopwatch();
         private List<CoinDesk> bitcoins = new List<CoinDesk>();
         private CancellationToken token = new CancellationToken();
+        private List<Student> students = new();
+        private List<Employee> employees = new();
+        private List<Person> people = new();
 
         public MainWindow()
         {
@@ -46,56 +41,6 @@ namespace Lesson10
 
         private async void Search_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                BeforeLoadingStockData();
-                var countries = CountryNameInput.Text.Split(' ');
-                CancellationTokenSource source = new CancellationTokenSource(TimeSpan.FromSeconds(7));
-                ConcurrentBag<University> universities = new ConcurrentBag<University>();
-                List<Task<List<University>>> loadingTasks = new List<Task<List<University>>>();
-
-                foreach(var country in countries)
-                {
-                    await Task.Delay(1000);
-                    var task = GetData(country, source);
-                    task = task.ContinueWith(t =>
-                    {
-                        var fiveUniversities = t.Result.Take(5).ToList();
-
-                        foreach (var university in fiveUniversities)
-                        {
-                            universities.Add(university);
-                        }
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            UniversitiesDataGrid.ItemsSource = universities.ToArray();
-                        });
-
-                        return fiveUniversities;
-                    });
-
-                    loadingTasks.Add(task);
-                }
-
-                var result = await Task.WhenAll(loadingTasks);
-            }
-            catch(NetworkInformationException ex)
-            {
-                Notes.Text = "Please, check your internet!";
-            }
-            catch(SocketException ex)
-            {
-
-            }
-            catch (Exception ex)
-            {
-                Notes.Text = ex.Message;
-            }
-            finally
-            {
-                AfterLoadingStockData();
-            }
         }
 
         private async Task WriteData(List<University> universities)
@@ -338,6 +283,41 @@ namespace Lesson10
             using var reader = new StreamReader(filename);
             var data = reader.ReadToEnd();
             Dispatcher.Invoke(() => Notes.Text = data);
+        }
+    }
+
+    interface IRunnable
+    {
+        void Run();
+    }
+
+    class Person
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        public virtual void DisplayInfo()
+        {
+            MessageBox.Show($"{FirstName} {LastName}");
+        }
+    }
+
+    class Student : Person
+    {
+        public int Grade { get; set; }
+
+        public override void DisplayInfo()
+        {
+            MessageBox.Show($"{FirstName} {LastName}, {Grade}");
+        }
+    }
+
+    class Employee : Person
+    {
+        public decimal Salary { get; set; }
+        public override void DisplayInfo()
+        {
+            MessageBox.Show($"{FirstName} {LastName}, {Salary}");
         }
     }
 }
