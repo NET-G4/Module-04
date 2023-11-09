@@ -1,4 +1,5 @@
 ﻿using Lesson11.Models;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,6 +22,7 @@ namespace Lesson11
 
         public MainWindow()
         {
+            _apiService = new ApiService();
             InitializeComponent();
         }
 
@@ -32,9 +34,20 @@ namespace Lesson11
 
         // Async -> continue with -> when all
         private void Search_Click(object sender, RoutedEventArgs e)
-        {
-            var country = CountryNameInput.Text;
-            UniversitiesDataGrid.ItemsSource = new List<University>();
+        {   
+            try
+            {
+                BeforeLoadingStockData();
+                var country = CountryNameInput.Text;
+                var result = _apiService.GetUniversitiesByCountry(country);
+
+                UniversitiesDataGrid.ItemsSource = result.ToArray();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"There was an error: {ex.Message}");
+                AfterLoadingStockData();
+            }
         }
 
         // new thread
