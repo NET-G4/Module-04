@@ -13,11 +13,8 @@ namespace Lesson11
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly HttpClient _client;
-        private const string UNIVERSITIES_API_URL = "http://universities.hipolabs.com/search?";
-        private static string BITCOIN_API_URL = "https://api.coindesk.com/v1/bpi/currentprice.json";
+        private readonly ApiService _apiService;
         private Stopwatch stopwatch = new Stopwatch();
-        private List<CoinDesk> bitcoins = new List<CoinDesk>();
         private CancellationToken token = new CancellationToken();
 
         public MainWindow()
@@ -27,12 +24,13 @@ namespace Lesson11
 
         private void Bitcoin_Click(object sender, RoutedEventArgs e)
         {
-
+            BitcoinsList.ItemsSource = new List<CoinDesk>();
         }
 
         private void Search_Click(object sender, RoutedEventArgs e)
         {
-
+            var country = CountryNameInput.Text;
+            UniversitiesDataGrid.ItemsSource = new List<University>();
         }
 
         private void BeforeLoadingStockData()

@@ -93,7 +93,7 @@
                                 Click="Bitcoin_Click"
                                 Content="Update Bitcoin" />
                             <ListBox
-                                x:Name="Coins"
+                                x:Name="BitcoinsList"
                                 Grid.Row="1"
                                 Margin="0,5,0,0"
                                 Padding="5" />

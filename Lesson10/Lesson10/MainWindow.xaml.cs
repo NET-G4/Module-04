@@ -21,9 +21,6 @@ namespace Lesson10
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly HttpClient _client;
-        private const string UNIVERSITIES_API_URL = "http://universities.hipolabs.com/search?";
-        private static string BITCOIN_API_URL = "https://api.coindesk.com/v1/bpi/currentprice.json";
         private Stopwatch stopwatch = new Stopwatch();
         private List<CoinDesk> bitcoins = new List<CoinDesk>();
         private CancellationToken token = new CancellationToken();
@@ -96,48 +93,6 @@ namespace Lesson10
             }
         }
 
-        private async Task<List<University>> LoadUniversities(string country, CancellationTokenSource token)
-        {
-            string url;
-            if (string.IsNullOrEmpty(country))
-            {
-                url = UNIVERSITIES_API_URL;
-            }
-            else
-            {
-                url = UNIVERSITIES_API_URL + "country=" + country;
-            }
-
-            var request = new HttpRequestMessage(HttpMethod.Get, url)
-            {
-                Content = new StringContent("", Encoding.UTF8, "application/json")
-            };
-            MessageBox.Show($"Start {country}: {Thread.CurrentThread.Name} {Thread.CurrentThread.ManagedThreadId}");
-            var response = await _client.SendAsync(request).ConfigureAwait(false);
-            MessageBox.Show($"Finished {country}: {Thread.CurrentThread.Name} {Thread.CurrentThread.ManagedThreadId}");
-            var streamReader = new StreamReader(response.Content.ReadAsStream());
-
-            var result = JsonConvert.DeserializeObject<List<University>>(streamReader.ReadToEnd());
-
-            return result;
-        }
-
-        private CoinDesk GetBitcoin()
-        {
-            Thread.Sleep(1500);
-            var url = BITCOIN_API_URL;
-            var request = new HttpRequestMessage(HttpMethod.Get, url)
-            {
-                Content = new StringContent("", Encoding.UTF8, "application/json")
-            };
-
-            var response = _client.Send(request);
-            var streamReader = new StreamReader(response.Content.ReadAsStream());
-
-            var result = JsonConvert.DeserializeObject<CoinDesk>(streamReader.ReadToEnd());
-
-            return result;
-        }
 
         #region Multithreading with ThreadPool
 
