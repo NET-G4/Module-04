@@ -23,6 +23,11 @@
                         Click="OpenFile_Click"
                         FontSize="20"
                         Header="Open File with data" />
+                    <MenuItem
+                        x:Name="SaveFile"
+                        Click="SaveFile_Click"
+                        FontSize="20"
+                        Header="Save loaded universities" />
                 </MenuItem>
             </Menu>
             <StatusBar DockPanel.Dock="Bottom">

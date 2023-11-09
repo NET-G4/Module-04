@@ -1,4 +1,5 @@
 ﻿using Lesson11.Models;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,6 +14,7 @@ namespace Lesson11
     /// </summary>
     public partial class MainWindow : Window
     {
+        private ConcurrentBag<University> universities = new ConcurrentBag<University>();
         private readonly ApiService _apiService;
         private Stopwatch stopwatch = new Stopwatch();
         private CancellationToken token = new CancellationToken();
@@ -22,15 +24,26 @@ namespace Lesson11
             InitializeComponent();
         }
 
+        // Async
         private void Bitcoin_Click(object sender, RoutedEventArgs e)
         {
             BitcoinsList.ItemsSource = new List<CoinDesk>();
         }
 
+        // Async -> continue with -> when all
         private void Search_Click(object sender, RoutedEventArgs e)
         {
             var country = CountryNameInput.Text;
             UniversitiesDataGrid.ItemsSource = new List<University>();
+        }
+
+        // new thread
+        private void SaveFile_Click(object sender, RoutedEventArgs e)
+        {
+            // universities.json
+
+
+            MessageBox.Show("Data saved successfully.");
         }
 
         private void BeforeLoadingStockData()
