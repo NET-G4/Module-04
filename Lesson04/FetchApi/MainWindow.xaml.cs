@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -26,17 +27,15 @@ namespace FetchApi
             string country = inputTextBox.Text;
 
             try
-            {
+            {   
                 Loader.Text = "Loading...";
+                                
+                var list =await FetchUniversities(country);
 
-                var list = await FetchUniversities(country).ConfigureAwait(false);
+                await SaveUniversitiesFile(list);
 
-                Thread.Sleep(2000);
-
-                Dispatcher.Invoke(() =>
-                {
-                    dataGrid.ItemsSource = list;
-                });
+                dataGrid.ItemsSource = list;
+                
             }
             catch (Exception ex)
             {
@@ -53,21 +52,25 @@ namespace FetchApi
 
         private async Task<List<University>> FetchUniversities(string country)
         {
-            HttpClient client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, $"http://universities.hipolabs.com/search?country={country}")
-            {
-                Content = new StringContent("", Encoding.UTF8, "application/json")
-            };
+            List<University> result = new List<University>();
+            //ThreadPool.SetMaxThreads(5, 5);
+            //ThreadPool.QueueUserWorkItem(state =>
+            //{
+                HttpClient client = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, $"http://universities.hipolabs.com/search?country={country}")
+                {
+                    Content = new StringContent("", Encoding.UTF8, "application/json")
+                };
 
-            var response = await client.SendAsync(request);
-            using var streamReader = new StreamReader(response.Content.ReadAsStream());
+                var response = await client.SendAsync(request);
+                using var streamReader = new StreamReader(response.Content.ReadAsStream());
 
-            var result = JsonConvert.DeserializeObject<List<University>>(streamReader.ReadToEnd());
-
+                result = JsonConvert.DeserializeObject<List<University>>(streamReader.ReadToEnd());
+            //});
             return result;
         }
 
-        private async Task<CoinDesk> FetchCoinAsync()
+        private async Task<CoinDesk> FetchCoin()
         {
             var client = new HttpClient();
 
@@ -76,7 +79,7 @@ namespace FetchApi
                 Content = new StringContent("", Encoding.UTF8, "application/json")
             };
 
-            var response = await client.SendAsync(webRequest);
+            var response =await client.SendAsync(webRequest);
 
             using var reader = new StreamReader(response.Content.ReadAsStream());
             string json = reader.ReadToEnd();
@@ -92,8 +95,10 @@ namespace FetchApi
             {
                 Loader1.Text = "Loading...";
 
-                var result = await FetchCoinAsync();
+                var result = await FetchCoin();
                 coinDesks.Add(result);
+
+                await SaveFile();
 
                 dataGrid1.ItemsSource = null;
                 dataGrid1.ItemsSource = coinDesks;
@@ -107,6 +112,49 @@ namespace FetchApi
                 Loader1.Text = "Finished loading";
             }
         }
+        private async Task SaveFile()
+        {
+            string path = (Directory.GetParent(Directory.GetCurrentDirectory()).Parent).FullName +
+                   "\\Coindeskdata.txt";
+
+            if(!File.Exists(path))
+            {
+                File.Create(path).Close();
+            }
+            
+            using StreamWriter sw = new(path,true);
+
+            string json = JsonConvert.SerializeObject(coinDesks);
+
+            await sw.WriteAsync(json).ConfigureAwait(true);
+            await sw.WriteAsync(json).ConfigureAwait(true);
+
+            sw.WriteLine();
+            sw.WriteLine(DateTime.Now);
+            sw.WriteLine();
+        }
+        private async Task SaveUniversitiesFile(List<University>list)
+        {
+            string path = (Directory.GetParent(Directory.GetCurrentDirectory()).Parent).FullName +
+                 "\\dataUniversities.txt";
+
+            if (!File.Exists(path))
+            {
+                File.Create(path).Close();
+            }
+
+            using StreamWriter sw = new(path,true);
+
+            string json = JsonConvert.SerializeObject(list);
+
+            await sw.WriteAsync(json).ConfigureAwait(true);
+
+            sw.WriteLine();
+            sw.WriteLine(DateTime.Now);
+            sw.WriteLine();
+        }
+
+
     }
 
     class University
