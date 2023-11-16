@@ -62,11 +62,17 @@
                             x:Name="CountryNameInput"
                             Grid.Column="0"
                             Margin="0,0,20,0"
-                            Padding="3" />
+                            Padding="3" TextChanged="CountryNameInput_TextChanged" />
                         <Button
                             x:Name="Search"
                             Grid.Column="1"
-                            Click="Search_Click">
+                            Click="Search_Click" Height="24" VerticalAlignment="Bottom">
+                            <Button.Background>
+                                <RadialGradientBrush>
+                                    <GradientStop Color="Black"/>
+                                    <GradientStop Color="#FFC7F07A" Offset="1"/>
+                                </RadialGradientBrush>
+                            </Button.Background>
                             Search
                         </Button>
                     </Grid>
@@ -84,21 +90,25 @@
                     <GroupBox Grid.Column="1" Padding="5">
                         <GroupBox.Header>Bitcoin</GroupBox.Header>
                         <Grid VerticalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="77*"/>
+                                <ColumnDefinition Width="12*"/>
+                            </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" MinHeight="25" />
+                                <RowDefinition />
                             </Grid.RowDefinitions>
                             <Button
                                 x:Name="Bitcoin"
                                 Grid.Row="0"
-                                HorizontalAlignment="Right"
+                                HorizontalAlignment="Left"
                                 Click="Bitcoin_Click"
-                                Content="Update Bitcoin" />
+                                Content="Update Bitcoin" Background="#FF69D5F9" Grid.ColumnSpan="2" Margin="96,0,0,1" Width="82" />
                             <ListBox
                                 x:Name="BitcoinsList"
                                 Grid.Row="1"
-                                Margin="0,5,0,0"
-                                Padding="5" />
+                                Margin="0,25,0,0"
+                                Padding="5" Grid.ColumnSpan="2" Background="#FF0B100F" Foreground="#FF64F305" FontSize="14" />
                         </Grid>
                     </GroupBox>
                     <GroupBox Grid.Column="2" Padding="5">
