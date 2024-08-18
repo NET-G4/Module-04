@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,27 +17,95 @@ using System.Windows.Shapes;
 
 namespace Exam
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        public const string STOCKS_API_URL = "https://ps-async.fekberg.com/api/stocks/";
-        public const string BITCOIN_API_URL = "https://api.coindesk.com/v1/bpi/currentprice.json";
-
+        Stopwatch stopwatch = new Stopwatch();
+        private ApiService _api;
+        private List<Coin> coins;
         public MainWindow()
         {
             InitializeComponent();
+            _api = new ApiService();
+            coins = new List<Coin>();
         }
 
-        private void Search_Click(object sender, RoutedEventArgs e)
+        private async void Search_Click(object sender, RoutedEventArgs e)
         {
-            // StocksDataGrid.ItemsSource = 
+            try
+            {
+                BeforeLoad();
+    
+                string[]stocksName = CountryNameInput.Text.Split(' ');
+                List<List<Stock>> tasks = new List<List<Stock>>();
+                List<Stock> stoc = new List<Stock>();
+
+                foreach (string stockName in stocksName)
+                {
+                    stockName.ToLower();
+
+                    var task = await _api.GetStocksAsync(stockName);
+                    tasks.Add(task);
+                }
+
+                foreach(var res in tasks)
+                {
+                    if(res != null)
+                    {
+                        foreach(var st in res)
+                        {
+                            stoc.Add(st);
+                        }
+                    }
+                }
+
+                string json = JsonConvert.SerializeObject(stoc);
+                FileService.WriteStockData(json);
+                
+                StocksDataGrid.ItemsSource = stoc;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally 
+            {
+                AfterLoad();
+            }
+   
         }
 
-        private void Bitcoin_Click(object sender, RoutedEventArgs e)
+        private async void Bitcoin_Click(object sender, RoutedEventArgs e)
         {
-            // BitcoinsList.ItemsSource = 
+            try
+            {
+                BeforeLoad();
+                var coin = await _api.GetCoinAsync();
+                coins.Add(coin);
+
+                string json = JsonConvert.SerializeObject(coins);
+                FileService.WriteCoinData(json);
+
+                BitcoinsList.ItemsSource = coins;
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                AfterLoad();
+            }            
+        }
+        public void BeforeLoad()
+        {
+            stopwatch.Restart();
+            StockProgress.Visibility = Visibility.Visible;
+            StockProgress.IsIndeterminate = true;
+        }
+        public void AfterLoad()
+        {
+            StocksStatus.Text = $"Loaded stocks in {stopwatch.ElapsedMilliseconds}ms";
+            StockProgress.Visibility = Visibility.Hidden;
         }
     }
 }

@@ -15,8 +15,8 @@
                 <MenuItem FontSize="20" Header="_File">
                     <MenuItem
                         x:Name="Close"
-                        Click="Close_OnClick"
-                        FontSize="20"
+                        Click="Close_OnClick"                              
+                    FontSize="20"
                         Header="_Close" />
                     <MenuItem
                         x:Name="OpenFile"
